@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<project default="par" name="CURP-Helper">
+	<property name="jarname" value="${ant.project.name}"/>
+	<property name="lib.dir" value="${basedir}/lib"/>
+	<property name="src.dir" value="${basedir}/src"/>
+	<property name="bin.dir" value="${basedir}/bin"/>
+	<property name="resources.dir" value="${basedir}/resources"/>
+	<property name="build.base.dir" value="${basedir}/build"/>
+	<property name="build.cls.dir" value="${build.base.dir}/cls"/>
+	<property name="build.tmp.dir" value="${build.base.dir}/tmp"/>
+	<property name="build.par.dir" value="${build.base.dir}/par"/>
+	<property name="dist.base.dir" value="${basedir}/dist"/>
+	<property name="dist.lib.dir" value="${dist.base.dir}/lib"/>
+	<property name="dist.bin.dir" value="${dist.base.dir}/bin"/>
+	<path id="palantir-classpath">
+		<fileset dir="${palantir.home}/lib">
+			<include name="**/pg-client.jar"/>
+			<include name="**/*TileSource*.jar"/>
+			<include name="**/standard-*.jar"/>
+			<include name="**/pg-server.jar"/>
+		</fileset>
+	</path>
+	<path id="project-classpath">
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	<path id="compile-classpath">
+		<path refid="project-classpath"/>
+		<path refid="palantir-classpath"/>
+		<pathelement location="${resources.dir}"/>
+	</path>
+	<target name="clean">
+		<delete dir="${dist.base.dir}" failonerror="false"/>
+		<delete dir="${build.base.dir}" failonerror="false"/>
+	</target>
+	<target name="init">
+		<mkdir dir="${dist.lib.dir}"/>
+		<mkdir dir="${dist.bin.dir}"/>
+		<mkdir dir="${build.cls.dir}"/>
+		<mkdir dir="${build.tmp.dir}"/>
+		<mkdir dir="${build.par.dir}"/>
+		<mkdir dir="${build.par.dir}/classes"/>
+		<mkdir dir="${build.par.dir}/lib"/>
+	</target>
+	<target depends="clean,init" name="compile">
+		<javac debug="true" deprecation="false" destdir="${build.cls.dir}" failonerror="true" fork="yes" memorymaximumsize="512m" optimize="false" target="1.5">
+			<src path="${src.dir}"/>
+			<classpath refid="compile-classpath"/>
+		</javac>
+	</target>
+	<target depends="init" name="zip-src">
+		<zip basedir="${src.dir}" destfile="${dist.base.dir}/${jarname}-src.zip"/>
+	</target>
+	<target name="par" depends="compile, zip-src">	
+		<copy todir="${build.par.dir}/classes">
+			<fileset dir="${build.cls.dir}"/>
+			<fileset dir="${basedir}">
+				<include name="ptplugin.xml"/>
+			</fileset>
+			<fileset dir="${resources.dir}" />
+		</copy>
+		<copy todir="${build.par.dir}/lib">
+			<fileset dir="${lib.dir}">
+				<include name="**/*.jar"/>
+			</fileset>
+		</copy>
+		<jar destfile="${dist.base.dir}/${jarname}.par">
+			<fileset dir="${build.par.dir}"/>
+		</jar>
+	</target>
+</project>
